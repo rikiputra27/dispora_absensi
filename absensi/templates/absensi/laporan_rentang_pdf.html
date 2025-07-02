@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <title>Rekap Laporan Absensi Pegawai</title>
+        <style>
+      @page { size: A4 landscape; margin: 1.5cm; }
+      body { font-family: Arial, sans-serif; font-size: 9pt; color: #333; }
+      .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+      .header h1 { margin: 0; font-size: 18pt; }
+      .header p { margin: 5px 0 0; font-size: 12pt; }
+      .pegawai-section { margin-bottom: 20px; page-break-inside: avoid; }
+      .pegawai-header { background-color: #e0e0e0; padding: 8px; font-weight: bold; font-size: 11pt; border: 1px solid #333; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { border: 1px solid #666; padding: 5px; text-align: left; }
+      th { background-color: #f2f2f2; }
+      .total-row { font-weight: bold; background-color: #f2f2f2; }
+      .footer { position: fixed; bottom: -30px; left: 0; right: 0; text-align: right; font-size: 8pt; color: #777; }
+      .signature-section { margin-top: 40px; width: 100%; page-break-before: auto; }
+      .signature { float: right; width: 250px; text-align: center; }
+      .signature-name { margin-top: 60px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; }
+      .no-data-text { text-align: center; font-style: italic; color: #777; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Rekap Laporan Absensi per Pegawai</h1>
+            <p>Dinas Kepemudaan dan Olahraga (Dispora) Kota Banjarmasin</p>
+            <p>Periode: {{ tanggal_awal|date:"d F Y" }} - {{ tanggal_akhir|date:"d F Y" }}</p>
+        </div>
+        {% for id_peg, data_pegawai in laporan_per_pegawai.items %}
+        <div class="pegawai-section">
+            <div class="pegawai-header">
+                Nama: {{ data_pegawai.pegawai.nama_lengkap }} &nbsp;&nbsp;|&nbsp;&nbsp; NIP: {{ data_pegawai.pegawai.nip|default:'-' }}
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">No.</th>
+                        <th style="width: 18%;">Tanggal</th>
+                        <th style="width: 12%;">Jam Masuk</th>
+                        <th style="width: 12%;">Jam Pulang</th>
+                        <th style="width: 15%;">Jam Kerja Harian</th>
+                        <th style="width: 13%;">Jenis Kerja</th>
+                        <th style="width: 25%;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rincian in data_pegawai.rincian_harian %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ rincian.tanggal|date:"d M Y" }}</td>
+                        <td>{{ rincian.jam_masuk|time:"H:i:s"|default:"-" }}</td>
+                        <td>{{ rincian.jam_pulang|time:"H:i:s"|default:"-" }}</td>
+                        <td>{{ rincian.jam_kerja }}</td>
+                        <td>{{ rincian.jenis_kerja|default:"-" }}</td>
+                        <td>
+                            {% if rincian.perizinan_obj %}
+                    {% if rincian.perizinan_obj.status_pengajuan == 'Disetujui' %}
+                        Izin ({{ rincian.perizinan_obj.get_jenis_izin_display }})
+                    {% elif rincian.perizinan_obj.status_pengajuan == 'Diajukan' %}
+                        Menunggu Persetujuan
+                    {% else %}
+                        Izin Ditolak
+                    {% endif %}
+                {% else %}
+                    {{ rincian.status }}
+                {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="no-data-text">Tidak ada catatan absensi/izin pada periode ini.</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="5" style="text-align: right; font-weight: bold;">Total Jam Kerja Efektif</td>
+                        <td colspan="2" style="font-weight: bold;">{{ data_pegawai.total_jam_kerja_str }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+        <div class="signature-section">
+            <div class="signature">
+                <p>Banjarmasin, {% now "d F Y" %}</p>
+                <p>Mengetahui,</p>
+                <div class="signature-name">(...........................................)</div>
+                <p>Kepala Dinas</p>
+            </div>
+        </div>
+        <div class="footer">Dicetak pada: {% now "d F Y, H:i" %}</div>
+    </body>
+</html>

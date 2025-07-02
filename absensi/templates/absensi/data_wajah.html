@@ -1,0 +1,153 @@
+{% extends 'absensi/base_admin.html' %}
+
+{% block title %}Kelola Data Wajah{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<div x-data="dataWajahPage()" x-init="init()">
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">Kelola Data Wajah</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+        <div class="p-3 mb-4 rounded-lg text-sm {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-700{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="mb-4 max-w-lg">
+            <label for="pegawai-select" class="block text-sm font-medium text-gray-700">Pilih Pegawai</label>
+            <select id="pegawai-select" x-model="selectedPegawai" @change="getWajahData()"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500">
+                <option value="" selected disabled>--- Pilih Pegawai ---</option>
+                {% for pegawai in semua_pegawai %}
+                    <option value="{{ pegawai.id_pegawai }}">{{ pegawai.nama_lengkap }} (NIP: {{ pegawai.nip|default_if_none:'-' }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="upload-form-container" style="display: none;">
+             <form action="{% url 'tambah_data_wajah' %}" method="POST" enctype="multipart/form-data" class="mt-6 border-t pt-6">
+                {% csrf_token %}
+                <h3 class="text-lg font-semibold text-gray-700">Tambah Foto Wajah Baru</h3>
+                <input type="hidden" name="id_pegawai" :value="selectedPegawai">
+                <div class="mt-4">
+                    <label for="wajah_baru" class="block text-sm font-medium text-gray-700">Upload File Gambar</label>
+                    <input type="file" name="wajah_baru" id="wajah_baru" multiple required class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200 cursor-pointer">
+                    <p class="mt-1 text-xs text-gray-500">Anda bisa memilih lebih dari satu file.</p>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="bg-red-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-red-700">
+                        Upload & Train Ulang
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="wajah-container" class="border rounded-lg p-6 mt-6 min-h-[18rem] flex justify-center items-center bg-gray-50">
+            <p class="text-gray-500">Silakan pilih seorang pegawai untuk melihat data wajahnya.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function dataWajahPage() {
+        return {
+            isLoading: false,
+            faceData: [],
+            selectedPegawai: null,
+            init() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const pegawaiId = urlParams.get('pegawai');
+                if (pegawaiId) {
+                    this.selectedPegawai = pegawaiId;
+                    document.getElementById('pegawai-select').value = pegawaiId;
+                    this.getWajahData();
+                }
+            },
+            
+            renderWajah() {
+                const container = document.getElementById('wajah-container');
+                container.innerHTML = ''; 
+
+                if (this.isLoading) {
+                    container.innerHTML = `<div class="text-center text-gray-500">Memuat data...</div>`;
+                    return;
+                }
+
+                if (this.faceData.length === 0 && this.selectedPegawai) {
+                    container.innerHTML = `<p class="text-gray-500">Pegawai ini belum memiliki data wajah.</p>`;
+                    return;
+                } else if (!this.selectedPegawai) {
+                    container.innerHTML = `<p class="text-gray-500">Silakan pilih seorang pegawai untuk melihat data wajahnya.</p>`;
+                    return;
+                }
+
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full';
+
+                this.faceData.forEach(wajah => {
+                    const card = document.createElement('div');
+                    card.className = 'relative group aspect-square';
+                    
+                    const img = document.createElement('img');
+                    img.src = wajah.url;
+                    img.alt = 'Foto Wajah';
+                    img.className = 'w-full h-full object-cover rounded-md shadow-md border';
+                    
+                    const overlay = document.createElement('div');
+                    overlay.className = 'absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all flex items-center justify-center';
+                    
+                    const deleteButton = document.createElement('button');
+                    deleteButton.title = 'Hapus Foto';
+                    deleteButton.className = 'text-white opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 rounded-full p-2 transform hover:scale-110';
+                    deleteButton.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+                    
+                    // INI KUNCINYA: Menambahkan event listener secara langsung
+                    deleteButton.addEventListener('click', () => {
+                        this.hapusWajah(wajah.id);
+                    });
+                    
+                    overlay.appendChild(deleteButton);
+                    card.appendChild(img);
+                    card.appendChild(overlay);
+                    grid.appendChild(card);
+                });
+
+                container.appendChild(grid);
+            },
+
+            getWajahData() {
+                if (!this.selectedPegawai) return;
+                this.isLoading = true;
+                document.getElementById('upload-form-container').style.display = 'block';
+                this.renderWajah(); 
+
+                fetch(`/api/get-wajah/${this.selectedPegawai}/`)
+                    .then(response => response.json())
+                    .then(data => { this.faceData = data.data_wajah; })
+                    .finally(() => { this.isLoading = false; this.renderWajah(); });
+            },
+
+            hapusWajah(wajahId) {
+                if (!confirm('Anda yakin ingin menghapus foto wajah ini secara permanen?')) return;
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch(`/api/hapus-wajah/${wajahId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        this.faceData = this.faceData.filter(wajah => wajah.id !== wajahId);
+                        this.renderWajah(); // Gambar ulang tampilan setelah data diubah
+                    } else { alert('Gagal menghapus: ' + data.message); }
+                });
+            }
+        }
+    }
+</script>
+{% endblock %}

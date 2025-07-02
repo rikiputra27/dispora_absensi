@@ -1,0 +1,51 @@
+{% extends 'absensi/base_admin.html' %} 
+
+{% block title %}Manajemen Pegawai{% endblock %} 
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Manajemen Data Pegawai</h1>
+</div>
+<div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-50 border-b-2 border-gray-200">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No.</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nama Pegawai</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">NIP</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jabatan</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for pegawai in semua_pegawai %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ pegawai.nama_lengkap }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pegawai.nip|default:"-" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pegawai.jabatan|default:"-" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        {% if pegawai.status_pegawai == 'Aktif' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>
+                        {% else %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Tidak Aktif</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <a href="#" class="text-blue-600 hover:text-blue-900">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                        Belum ada data pegawai.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

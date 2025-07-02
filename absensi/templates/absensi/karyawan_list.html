@@ -1,0 +1,292 @@
+{% extends 'absensi/base_admin.html' %} {% block title %}Kelola
+Karyawan{%endblock %} {% block content %}
+{{semua_karyawan_json|json_script:"karyawan-data" }}
+
+<div x-data="karyawanPage()">
+  <div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Daftar Karyawan</h1>
+    <button
+      @click="openModalTambah()"
+      class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors duration-150 flex items-center"
+    >
+      <svg
+        class="w-5 h-5 mr-2"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="2"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 4.5v15m7.5-7.5h-15"
+        />
+      </svg>
+      Tambah Karyawan
+    </button>
+  </div>
+
+  {% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+    <div
+      class="p-3 rounded-lg text-sm {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-700{% endif %}"
+    >
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="bg-white shadow-xl rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+            >
+              NIP
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+            >
+              Nama
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+            >
+              Jabatan
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+            >
+              Username
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+            >
+              Status
+            </th>
+            <th
+              class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase"
+            >
+              Aksi
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for karyawan in semua_karyawan %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ karyawan.nip|default:"-" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ karyawan.nama_lengkap }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+              {{ karyawan.jabatan|default:"-" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+              {{ karyawan.id_user.username }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span
+                class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full {% if karyawan.status_pegawai == 'Aktif' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}"
+              >
+                {{ karyawan.status_pegawai }}
+              </span>
+            </td>
+            <td
+              class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center"
+            >
+              <button
+                @click="openModalEdit({{ karyawan.id_pegawai }})"
+                class="text-indigo-600 hover:text-indigo-800 mr-3"
+              >
+                Edit
+              </button>
+              <a
+                href="{% url 'karyawan_hapus' karyawan.id_pegawai %}"
+                onclick="return confirm('PERHATIAN: Anda akan menghapus {{karyawan.nama_lengkap}} beserta semua data terkait. Lanjutkan?')"
+                class="text-red-600 hover:text-red-800"
+                >Hapus</a
+              >
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+              Belum ada data karyawan.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div
+    x-show="showForm"
+    x-transition
+    class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center p-4 z-40"
+    @click.self="showForm = false"
+    style="display: none"
+  >
+    <div
+      class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+      @click.stop
+    >
+      <h3
+        class="text-xl font-semibold text-gray-900 mb-6"
+        x-text="editMode ? 'Edit Data Karyawan' : 'Tambah Karyawan Baru'"
+      ></h3>
+
+      <form
+        :action="formAction"
+        method="POST"
+        enctype="multipart/form-data"
+        class="space-y-4"
+      >
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">NIP</label>
+            <input
+              type="text"
+              name="nip"
+              x-model="formData.nip"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Nama Lengkap</label
+            >
+            <input
+              type="text"
+              name="nama_lengkap"
+              x-model="formData.nama_lengkap"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Jabatan</label>
+          <input
+            type="text"
+            name="jabatan"
+            x-model="formData.jabatan"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+          />
+        </div>
+        <hr class="my-3" />
+        <p class="text-md font-semibold text-gray-700">Detail Akun</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Username</label
+            >
+            <input
+              type="text"
+              name="username"
+              x-model="formData.username"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Password</label
+            >
+            <input
+              type="password"
+              name="password"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+              :placeholder="editMode ? 'Kosongkan jika tidak diubah' : ''"
+              :required="!editMode"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Status Pegawai</label
+            >
+            <select
+              name="status_pegawai"
+              x-model="formData.status_pegawai"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm"
+            >
+              <option value="Aktif">Aktif</option>
+              <option value="Tidak Aktif">Tidak Aktif</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-6 flex justify-end space-x-3">
+          <button
+            type="button"
+            @click="showForm = false"
+            class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg"
+          >
+            Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function karyawanPage() {
+    return {
+      showForm: false,
+      editMode: false,
+      formAction: "",
+      karyawanData: JSON.parse(
+        document.getElementById("karyawan-data").textContent
+      ),
+      formData: {},
+      openModalTambah() {
+        this.editMode = false;
+        this.formAction = "{% url 'karyawan_list' %}";
+        this.formData = {
+          nip: "",
+          nama_lengkap: "",
+          jabatan: "",
+          username: "",
+          status_pegawai: "Aktif",
+        };
+        this.showForm = true;
+      },
+      openModalEdit(id_pegawai) {
+        let karyawan = this.karyawanData.find(
+          (k) => k.id_pegawai == id_pegawai
+        );
+        if (!karyawan) {
+          alert("Data karyawan tidak ditemukan!");
+          return;
+        }
+        this.editMode = true;
+        this.formAction = `/karyawan/edit/${karyawan.id_pegawai}/`;
+        this.formData = {
+          nip: karyawan.nip,
+          nama_lengkap: karyawan.nama_lengkap,
+          jabatan: karyawan.jabatan,
+          username: karyawan.id_user__username, // Ambil username dari data JSON
+          status_pegawai: karyawan.status_pegawai,
+        };
+        this.showForm = true;
+      },
+    };
+  }
+</script>
+{% endblock %}

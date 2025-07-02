@@ -1,0 +1,76 @@
+{% extends 'absensi/base_pegawai.html' %} {%block title %}Dashboard{% endblock%}
+{% block header_title %}Dashboard{% endblock %} {%block content %}
+<div class="space-y-6">
+  <div class="bg-white p-6 rounded-lg shadow-lg">
+    <h2 class="text-xl font-semibold text-gray-800 border-b pb-3 mb-4">
+      Status Kehadiran Hari Ini
+    </h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div class="flex items-center space-x-4">
+        {% if absen_masuk %}
+        <div class="bg-green-100 p-3 rounded-full">
+          <svg class="w-6 h-6 text-green-600" fill="none" ...>...</svg>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Jam Masuk</p>
+          <p class="text-lg font-bold text-gray-900">
+            {{ absen_masuk.waktu_absensi|time:"H:i:s" }}
+          </p>
+        </div>
+        {% else %}
+        <div class="bg-gray-100 p-3 rounded-full">
+          <svg class="w-6 h-6 text-gray-500" fill="none" ...>...</svg>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Jam Masuk</p>
+          <p class="text-lg font-semibold text-gray-500">Belum Absen</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="flex items-center space-x-4">
+        {% if absen_pulang %}
+        <div class="bg-green-100 p-3 rounded-full">
+          <svg class="w-6 h-6 text-green-600" fill="none" ...>...</svg>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Jam Pulang</p>
+          <p class="text-lg font-bold text-gray-900">
+            {{ absen_pulang.waktu_absensi|time:"H:i:s" }}
+          </p>
+        </div>
+        {% else %}
+        <div class="bg-gray-100 p-3 rounded-full">
+          <svg class="w-6 h-6 text-gray-500" fill="none" ...>...</svg>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Jam Pulang</p>
+          <p class="text-lg font-semibold text-gray-500">Belum Absen</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <a href="{% url 'absensi' %}" class="group block p-6 bg-red-600 ...">
+      <h3 class="text-2xl font-bold text-white">Lakukan Absensi</h3>
+      <p class="mt-2 text-red-100">Catat kehadiran masuk/pulang.</p>
+    </a>
+    <a
+      href="{% url 'riwayat_absensi' %}"
+      class="group block p-6 bg-gray-700 ..."
+    >
+      <h3 class="text-2xl font-bold text-white">Riwayat Absensi</h3>
+      <p class="mt-2 text-gray-300">Lihat semua catatan kehadiran.</p>
+    </a>
+    <a href="{% url 'ajukan_izin' %}" class="group block p-6 bg-yellow-500 ...">
+      <h3 class="text-2xl font-bold text-white">Ajukan Izin</h3>
+      <p class="mt-2 text-yellow-100">Ajukan izin sakit atau cuti.</p>
+    </a>
+    <a href="{% url 'riwayat_izin' %}" class="group block p-6 bg-blue-500 ...">
+      <h3 class="text-2xl font-bold text-white">Riwayat Izin</h3>
+      <p class="mt-2 text-blue-100">Lihat status pengajuan izin Anda.</p>
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'absensi/base_admin.html' %} {%block title %}Detail Pengajuan
+Izin{%endblock %} {% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Detail Pengajuan Izin</h1>
+    <a
+      href="javascript:history.back()"
+      class="text-blue-600 hover:underline font-semibold"
+    >
+      &larr; Kembali
+    </a>
+  </div>
+
+  <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="md:col-span-2">
+          <dl class="space-y-4">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Nama Pegawai</dt>
+              <dd class="mt-1 text-lg font-semibold text-gray-900">
+                {{ pengajuan.id_pegawai.nama_lengkap }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Jenis Pengajuan</dt>
+              <dd class="mt-1 text-lg text-gray-900">
+                {{ pengajuan.get_jenis_izin_display }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Rentang Tanggal</dt>
+              <dd class="mt-1 text-lg text-gray-900">
+                {{ pengajuan.tanggal_awal|date:"d F Y" }} s/d
+                {{pengajuan.tanggal_akhir|date:"d F Y" }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Keterangan</dt>
+              <dd class="mt-1 text-lg text-gray-900 bg-gray-50 p-3 rounded-md">
+                {{ pengajuan.keterangan|linebreaksbr }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">File Lampiran</dt>
+              <dd class="mt-1">
+                {% if pengajuan.file_lampiran %}
+                <a
+                  href="{{ pengajuan.file_lampiran.url }}"
+                  target="_blank"
+                  class="text-blue-600 hover:underline font-bold"
+                >
+                  Lihat Lampiran
+                </a>
+                {% else %}
+                <span class="text-gray-500">Tidak ada lampiran</span>
+                {% endif %}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="md:col-span-1">
+          <div class="bg-gray-50 p-4 rounded-lg border">
+            <h4 class="font-bold text-lg mb-4">Status Pengajuan</h4>
+            {% if pengajuan.status_pengajuan == 'Diajukan' %}
+            <span
+              class="px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"
+              >Menunggu Persetujuan</span
+            >
+            {% elif pengajuan.status_pengajuan == 'Disetujui' %}
+            <span
+              class="px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full bg-green-100 text-green-800"
+              >Disetujui</span
+            >
+            {% else %}
+            <span
+              class="px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full bg-gray-200 text-gray-800"
+              >Ditolak</span
+            >
+            {% endif %} {% if pengajuan.status_pengajuan == 'Diajukan' %}
+            <div class="mt-6 space-y-3">
+              <p class="text-sm text-gray-600">
+                Ambil tindakan untuk pengajuan ini:
+              </p>
+              <form
+                action="{% url 'verifikasi_izin' pengajuan.id_izin 'setujui' %}"
+                method="post"
+                onsubmit="return confirm('Anda yakin ingin MENYETUJUI pengajuan ini?');"
+              >
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition duration-150"
+                >
+                  Setujui
+                </button>
+              </form>
+              <form
+                action="{% url 'verifikasi_izin' pengajuan.id_izin 'tolak' %}"
+                method="post"
+                onsubmit="return confirm('Anda yakin ingin MENOLAK pengajuan ini?');"
+              >
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="w-full bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150"
+                >
+                  Tolak
+                </button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

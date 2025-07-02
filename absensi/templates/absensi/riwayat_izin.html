@@ -1,0 +1,79 @@
+{% extends 'absensi/base_pegawai.html' %} {%block title %}Riwayat Pengajuan Izin
+{% endblock %} {%block header_title %} Riwayat Pengajuan Izin Anda{% endblock %}
+{% block content %}
+<div class="bg-white shadow-lg rounded-lg overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+          >
+            Tgl Pengajuan
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+          >
+            Tipe
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+          >
+            Rentang Izin
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+          >
+            Dokumen
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+          >
+            Status
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for izin in riwayat_list %}
+        <tr>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ izin.tanggal_pengajuan|date:"d M Y" }}
+          </td>
+          <td
+            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+          >
+            {{ izin.get_jenis_izin_display }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{izin.tanggal_awal|date:"d M"}}-{{izin.tanggal_akhir|date:"d M Y"}}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            {# --- PERBAIKAN DI SINI --- #} {% if izin.file_lampiran %}
+            <a
+              href="{{ izin.file_lampiran.url }}"
+              target="_blank"
+              class="text-indigo-600 hover:text-indigo-900"
+              >Lihat Dokumen</a
+            >
+            {% else %} - {% endif %}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span
+              class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if izin.status_pengajuan == 'Disetujui' %}bg-green-100 text-green-800 {% elif izin.status_pengajuan == 'Ditolak' %}bg-red-100 text-red-800 {% else %}bg-yellow-100 text-yellow-800{% endif %}"
+            >
+              {{ izin.get_status_pengajuan_display }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+            Anda belum pernah mengajukan izin.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

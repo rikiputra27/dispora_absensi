@@ -1,0 +1,170 @@
+{% extends 'absensi/base_pegawai.html' %} {% block title %}Lakukan
+Absensi{%endblock %} {% block header_title %}Lakukan Absensi{% endblock %}
+{%block content %}
+<div
+  x-data="absensiPage()"
+  x-init="init()"
+  class="bg-white p-4 sm:p-6 rounded-lg shadow-lg max-w-2xl mx-auto"
+>
+  {% if sistem_siap %}
+  <div class="text-center">
+    <div
+      class="bg-black rounded-lg shadow-lg overflow-hidden mb-4 mx-auto w-full"
+    >
+      <video
+        x-ref="video"
+        playsinline
+        autoplay
+        muted
+        class="w-full h-auto transform -scale-x-100"
+      ></video>
+    </div>
+    <canvas x-ref="canvas" style="display: none"></canvas>
+
+    <div class="space-y-3">
+      <p class="text-sm text-gray-600">
+        Pastikan wajah Anda terlihat jelas dan berada di dalam area kamera.
+      </p>
+
+      {% if not sudah_absen_masuk %}
+      <button
+        @click="doAbsensi('Masuk')"
+        :disabled="loading"
+        class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+      >
+        <span x-show="!loading">Absen Masuk</span>
+        <span x-show="loading">Memproses...</span>
+      </button>
+      {% elif not sudah_absen_pulang %}
+      <button
+        @click="doAbsensi('Pulang')"
+        :disabled="loading"
+        class="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors"
+      >
+        <span x-show="!loading">Absen Pulang</span>
+        <span x-show="loading">Memproses...</span>
+      </button>
+      {% else %}
+      <div class="p-4 bg-green-100 text-green-800 rounded-lg">
+        Anda sudah menyelesaikan absensi hari ini. Terima kasih!
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="p-4 bg-red-100 text-red-800 rounded-lg text-center">
+    <h3 class="font-bold">Sistem Absensi Belum Siap!</h3>
+    <p class="mt-2">
+      Tidak dapat memulai kamera karena model pengenalan wajah gagal
+      di-training. Ini bisa terjadi jika belum ada data wajah di sistem. Silakan
+      hubungi admin untuk menambahkan data wajah Anda.
+    </p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function absensiPage() {
+    return {
+      loading: false,
+      init() {
+        if (this.$refs.video) {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices
+              .getUserMedia({ video: true })
+              .then((stream) => {
+                this.$refs.video.srcObject = stream;
+              })
+              .catch((err) => {
+                Swal.fire(
+                  "Error Webcam",
+                  "Tidak bisa mengakses webcam. Mohon izinkan akses kamera di browser Anda.",
+                  "error"
+                );
+              });
+          }
+        }
+      },
+      doAbsensi(tipe) {
+        this.loading = true;
+
+        if (!navigator.geolocation) {
+          this.loading = false;
+          Swal.fire(
+            "Error Lokasi",
+            "Browser Anda tidak mendukung Geolocation.",
+            "error"
+          );
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            const video = this.$refs.video;
+            const canvas = this.$refs.canvas;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageDataUrl = canvas.toDataURL("image/jpeg");
+
+            fetch("{% url 'absensi' %}", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                image: imageDataUrl,
+                tipe: tipe,
+                latitude: latitude, // Data baru
+                longitude: longitude, // Data baru
+              }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.status === "success") {
+                  Swal.fire("Berhasil!", data.message, "success").then(() => {
+                    window.location.href = "{% url 'dashboard_pegawai' %}";
+                  });
+                } else {
+                  Swal.fire("Gagal!", data.message, "error");
+                }
+              })
+              .catch((err) => {
+                Swal.fire(
+                  "Error",
+                  "Terjadi kesalahan saat menghubungi server.",
+                  "error"
+                );
+              })
+              .finally(() => {
+                this.loading = false;
+              });
+          },
+          // --- Jika GAGAL mendapatkan lokasi ---
+          (error) => {
+            this.loading = false;
+            let errorMsg = "Terjadi kesalahan saat mengambil lokasi.";
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMsg =
+                  "Anda menolak permintaan untuk akses lokasi. Absensi tidak dapat dilanjutkan.";
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMsg = "Informasi lokasi tidak tersedia.";
+                break;
+              case error.TIMEOUT:
+                errorMsg = "Waktu permintaan lokasi habis.";
+                break;
+            }
+            Swal.fire("Error Lokasi", errorMsg, "error");
+          }
+        );
+      },
+    };
+  }
+</script>
+{% endblock %}

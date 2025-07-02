@@ -1,0 +1,72 @@
+{% extends 'absensi/base_pegawai.html' %} {% block title %}Riwayat
+Absensi{%endblock %} {% block header_title %}Riwayat Absensi Anda{% endblock %}
+{% block content %}
+<div class="mb-5 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+    <h3 class="text-lg font-bold text-gray-800">
+        Total Jam Kerja Anda:
+        <span class="text-blue-600">{{ total_jam_kerja }}</span>
+    </h3>
+</div>
+<div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-50 border-b-2 border-gray-200">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Tanggal
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Jam Masuk
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Jam Pulang
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Jam Kerja
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Jenis Kerja
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Status
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for item in riwayat_list_final %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">
+                        {{ item.tanggal|date:"d F Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-semibold">
+                        {{ item.jam_masuk|time:"H:i:s"|default:"-" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
+                        {{ item.jam_pulang|time:"H:i:s"|default:"-" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ item.jam_kerja }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="font-semibold {% if item.jenis_kerja == 'Work From Office' %}text-purple-700{% else %}text-orange-600{% endif %}">
+                            {{ item.jenis_kerja }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if item.status == 'Tepat Waktu' %}bg-green-100 text-green-800 {% elif item.status == 'Terlambat' %}bg-yellow-100 text-yellow-800 {% else %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ item.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                        Anda belum memiliki riwayat absensi.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

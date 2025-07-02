@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Laporan Absensi</title>
+    <style>
+      /* CSS ini ditulis langsung di sini agar bisa dibaca oleh generator PDF */
+      @page {
+        size: A4 landscape; /* Ukuran kertas A4 dengan orientasi landscape */
+        margin: 1.5cm;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 10pt;
+        color: #333;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 18pt;
+      }
+      .header p {
+        margin: 5px 0 0;
+        font-size: 12pt;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 5px;
+        margin-bottom: 25px; /* Beri jarak antar tabel harian */
+      }
+      th,
+      td {
+        border: 1px solid #666;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      .date-header {
+        font-size: 14pt;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+      .footer {
+        position: fixed;
+        bottom: -30px; /* Disesuaikan agar tidak terlalu mepet */
+        left: 0;
+        right: 0;
+        text-align: right;
+        font-size: 8pt;
+        color: #777;
+      }
+      .signature-section {
+        margin-top: 50px;
+        width: 100%;
+        page-break-inside: avoid; /* Hindari tanda tangan terpisah halaman */
+      }
+      .signature {
+        float: right;
+        width: 250px;
+        text-align: center;
+      }
+      .signature-name {
+        margin-top: 60px;
+        font-weight: bold;
+        border-top: 1px solid #000;
+        padding-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Laporan Absensi</h1>
+      <p>Dinas Kepemudaan dan Olahraga (Dispora) Kota Banjarmasin</p>
+      <p>
+        Periode: {{ tanggal_awal|date:"d F Y" }} - {{ tanggal_akhir|date:"d F Y"
+        }}
+      </p>
+    </div>
+
+    {% for tanggal, data_harian in laporan_data.items %}
+    <p class="date-header">Tanggal: {{ tanggal|date:"l, d F Y" }}</p>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 2%">No.</th>
+          <th style="width: 20%">Nama Pegawai</th>
+          <th style="width: 15%">NIP</th>
+          <th style="width: 10%">Jam Masuk</th>
+          <th style="width: 10%">Jam Pulang</th>
+          <th style="width: 15%">Jam Kerja</th>
+          <th style="width: 20%">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for data in data_harian %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ data.pegawai.nama_lengkap }}</td>
+          <td>{{ data.pegawai.nip|default:"-" }}</td>
+          <td>{{ data.jam_masuk|time:"H:i:s"|default:"-" }}</td>
+          <td>{{ data.jam_pulang|time:"H:i:s"|default:"-" }}</td>
+          <td>{{ data.jam_kerja }}</td>
+          <td>
+            {% if data.perizinan_obj %} {% if
+            data.perizinan_obj.status_pengajuan == 'Disetujui' %} Izin ({{
+            data.perizinan_obj.get_jenis_izin_display }}) {% elif
+            data.perizinan_obj.status_pengajuan == 'Diajukan' %} Menunggu
+            Persetujuan {% else %} Izin Ditolak {% endif %} {% else %} {{
+            data.status }} {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% empty %}
+    <p>Tidak ada data absensi untuk periode ini.</p>
+    {% endfor %}
+
+    <div class="signature-section">
+      <div class="signature">
+        <p>Banjarmasin, {% now "d F Y" %}</p>
+        <p>Mengetahui,</p>
+        <div class="signature-name">
+          (...........................................)
+        </div>
+        <p>Kepala Dinas</p>
+      </div>
+    </div>
+
+    <div class="footer">Dicetak pada: {% now "d F Y, H:i" %}</div>
+  </body>
+</html>

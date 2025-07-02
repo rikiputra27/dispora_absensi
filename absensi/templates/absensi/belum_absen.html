@@ -1,0 +1,45 @@
+{% extends 'absensi/base_admin.html' %} 
+
+{% block title %}Daftar Belum Absen{% endblock %} 
+
+{% block content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">Daftar Pegawai Belum Absen</h1>
+        <p class="text-gray-600 mt-1">Untuk tanggal: {{ tanggal_hari_ini|date:"l, d F Y" }}</p>
+    </div>
+    <a href="{% url 'dashboard_admin' %}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition whitespace-nowrap">
+        &larr; Kembali ke Dashboard
+    </a>
+</div>
+<div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-50 border-b-2 border-gray-200">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No.</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nama Pegawai</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">NIP</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jabatan</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for pegawai in pegawai_list %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ pegawai.nama_lengkap }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pegawai.nip|default:"-" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pegawai.jabatan|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-sm text-green-600 font-semibold">
+                        Semua pegawai aktif sudah melakukan absensi atau tercatat izin hari ini. Kerja bagus!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
