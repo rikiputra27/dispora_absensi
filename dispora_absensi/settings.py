@@ -67,9 +67,9 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "absensi_dispora",
         "USER": "root",
-        "PASSWORD": "root",
+        "PASSWORD": "59f68228433956b9cce3",
         "HOST": "127.0.0.1",
-        "PORT": "8889",
+        "PORT": "3306",
     }
 }
 
