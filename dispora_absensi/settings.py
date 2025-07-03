@@ -65,9 +65,9 @@ WSGI_APPLICATION = "dispora_absensi.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "absensi_dispora",
-        "USER": "root",
-        "PASSWORD": "59f68228433956b9cce3",
+        "NAME": "u166265415_absensi",
+        "USER": "u166265415_absensi",
+        "PASSWORD": "@Kuasa19221903",
         "HOST": "127.0.0.1",
         "PORT": "3306",
     }
